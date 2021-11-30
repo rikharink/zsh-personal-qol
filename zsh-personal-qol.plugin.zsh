@@ -1,5 +1,11 @@
 repo() {
     case "$1" in
+        dg)
+            pushd $HOME/repos/topicus/fs/declaratiegeneratie
+            ;;
+        fs)
+            pushd $HOME/repos/topicus/fs/
+            ;;
         toi)
             pushd $HOME/repos/topicus
             ;;
