@@ -72,3 +72,6 @@ switch-aws() {
     esac
 }
 
+killport() {
+  kill $(lsof -t -i:$1)
+}
