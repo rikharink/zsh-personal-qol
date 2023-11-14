@@ -81,7 +81,7 @@ if ! (( $+commands[eza] )); then
   return 1
 fi
 
-alias ls='eza --group-directories-first --icons --color-scale --time-style=iso' # --time-style=iso
+alias ls='eza --group-directories-first --icons --color-scale=all --time-style=iso' # --time-style=iso
 alias lt='eza --tree --level=2 --icons' # Show in tree view
 alias l='ls -a'                         # Short, all files
 alias ld='l -D'                         # Short, only directories
