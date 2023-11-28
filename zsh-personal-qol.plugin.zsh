@@ -40,22 +40,33 @@ repo() {
     esac
 }
 
+check_aws_session() {
+    aws sts get-caller-identity > /dev/null 2>&1
+    return $?
+}
+
 switch-aws() {
     case "$1" in
         fc)
             export AWS_PROFILE=fc
-            aws-keyhub login --role-arn arn:aws:iam::271413448748:role/topicus-operator --profile fc
+            if ! check_aws_session; then
+              aws-keyhub login --role-arn arn:aws:iam::271413448748:role/topicus-operator --profile fc
+            fi
             aws eks update-kubeconfig --name fincontrol-test-cluster
             ;;
         fc-acc)
             export AWS_PROFILE=fcacc
-            aws-keyhub login --role-arn arn:aws:iam::301199922953:role/topicus-operator --profile fcacc
-            #aws eks update-kubeconfig --name fincontrol-acc-cluster
+            if ! check_aws_session; then
+              aws-keyhub login --role-arn arn:aws:iam::301199922953:role/topicus-operator --profile fcacc
+              #aws eks update-kubeconfig --name fincontrol-acc-cluster
+            fi
             ;;
         fc-prod)
             export AWS_PROFILE=fcprod
-            aws-keyhub login --role-arn arn:aws:iam::870206891775:role/topicus-operator --profile fcprod
-            #aws eks update-kubeconfig --name fincontrol-prod-cluster
+            if ! check_aws_session; then
+              aws-keyhub login --role-arn arn:aws:iam::870206891775:role/topicus-operator --profile fcprod
+              #aws eks update-kubeconfig --name fincontrol-prod-cluster
+            fi
             ;;
         *)
             export AWS_PROFILE=$1
