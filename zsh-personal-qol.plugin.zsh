@@ -60,11 +60,20 @@ repo() {
 
 switch-aws() {
     case "$1" in
-        work)
-            export AWS_PROFILE=keyhub
+        fc)
+            export AWS_PROFILE=fc
+            aws-keyhub login --role-arn arn:aws:iam::271413448748:role/topicus-operator --profile fc
+            aws eks update-kubeconfig --name fincontrol-test-cluster
             ;;
-        default)
-            export AWS_PROFILE=default
+        fc-acc)
+            export AWS_PROFILE=fcacc
+            aws-keyhub login --role-arn arn:aws:iam::301199922953:role/topicus-operator --profile fcacc
+            #aws eks update-kubeconfig --name fincontrol-acc-cluster
+            ;;
+        fc-prod)
+            export AWS_PROFILE=fcprod
+            aws-keyhub login --role-arn arn:aws:iam::870206891775:role/topicus-operator --profile fcprod
+            #aws eks update-kubeconfig --name fincontrol-prod-cluster
             ;;
         *)
             export AWS_PROFILE=$1
@@ -91,4 +100,3 @@ alias lC='la --sort=changed'            # Long, sort changed
 alias lM='la --sort=modified'           # Long, sort modified
 alias lS='la --sort=size'               # Long, sort size
 alias lX='la --sort=extension'          # Long, sort extension
-
