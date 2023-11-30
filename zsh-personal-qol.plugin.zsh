@@ -40,38 +40,42 @@ repo() {
     esac
 }
 
-check_aws_session() {
-    aws sts get-caller-identity > /dev/null 2>&1
-    return $?
+check-aws-session() {
+    caller_identity=$(aws sts get-caller-identity --profile ${1})
+    return_code=$?
+    if [[ $return_code -ne 0 ]]; then
+      print "Sessie verlopen.."
+      return $return_code
+    fi
+    actual_account=$(echo "$caller_identity" | jq -r '.Account')
+
+    if [[ "$actual_account" == "${2}" ]]; then
+      return 0
+    else
+      print "Opnieuw inloggen; profiel ${1} is gekoppeld aan account ${actual_account} i.p.v. ${2}"
+      return 255
+    fi
 }
 
 switch-aws() {
-    case "$1" in
-        fc)
-            export AWS_PROFILE=fc
-            if ! check_aws_session; then
-              aws-keyhub login --role-arn arn:aws:iam::271413448748:role/topicus-operator --profile fc
-            fi
-            aws eks update-kubeconfig --name fincontrol-test-cluster
-            ;;
-        fc-acc)
-            export AWS_PROFILE=fcacc
-            if ! check_aws_session; then
-              aws-keyhub login --role-arn arn:aws:iam::301199922953:role/topicus-operator --profile fcacc
-              #aws eks update-kubeconfig --name fincontrol-acc-cluster
-            fi
-            ;;
-        fc-prod)
-            export AWS_PROFILE=fcprod
-            if ! check_aws_session; then
-              aws-keyhub login --role-arn arn:aws:iam::870206891775:role/topicus-operator --profile fcprod
-              #aws eks update-kubeconfig --name fincontrol-prod-cluster
-            fi
-            ;;
-        *)
-            export AWS_PROFILE=$1
-            ;;
-    esac
+  #set -x
+  export AWS_DEFAULT_REGION=eu-west-1
+  iam_role_arn="arn:aws:iam::${2}:role/${3}"
+  if ! check-aws-session ${1} ${2}; then
+     aws-keyhub login --role-arn $iam_role_arn --profile ${1}
+  fi
+  export AWS_PROFILE=${1}
+  echo -e "\e[32m\u2713\e[0m Switched AWS_PROFILE to \e[32m\"${1}\"\e[0m."
+  if [ -n "${4}" ]; then
+    available_kubectx=$(kubectx)
+    cluster_arn="arn:aws:eks:$AWS_DEFAULT_REGION:${2}:cluster/${4}"
+    if [[ $available_kubectx == *"$cluster_arn"* ]]; then
+      kubectx $cluster_arn
+    else
+      aws eks update-kubeconfig --name ${4}
+    fi
+  fi
+  #set +x
 }
 
 killport() {
